@@ -4,13 +4,14 @@ import matplotlib.pyplot as plt
 import DateTime as dt
 
 # Country Selector
-country_name = 'India'
-read_file = r'C:\Users\masoo\PycharmProjects\Covid-19\owid-covid-data.xlsx'
-df_main = pd.read_excel(read_file, sheet_name='Sheet1')
+url = 'https://covid.ourworldindata.org/data/owid-covid-data.xlsx?raw=True'
+country_name = 'Italy'
+df_main = pd.read_excel(url, sheet_name='Sheet1')
 df = df_main[df_main["location"] == country_name]
 
 days = np.linspace(0, len(df), len(df)).astype(int)
 date = df['date']
+
 day = []
 for dates in date:
     dayT = dates[5:7] + '-' + dates[8:10]
@@ -40,14 +41,14 @@ plt.suptitle('Daily new cases' + ' - ' + country_name)
 plt.subplot(2, 1, 1)
 plt.grid(True, which="both")
 plt.semilogy(day[case_100:], cum_cases[case_100:])
-plt.ylim([0, max(cum_cases) + 1000])
+plt.ylim([100, max(cum_cases) + 1000])
 plt.xlabel('Date')
 plt.ylabel('Cumulative cases (Semilog plot)')
 plt.xticks(day[case_100::2], rotation=90)
 plt.subplot(2, 1, 2)
 plt.grid(True, which="both")
 plt.plot(day[case_100:], cum_cases[case_100:])
-plt.ylim([0, max(cum_cases) + 1000])
+plt.ylim([100, max(cum_cases) + 1000])
 plt.xlabel('Date')
 plt.ylabel('Cumulative cases')
 plt.xticks(day[case_100::2], rotation=90)
@@ -74,14 +75,14 @@ plt.suptitle('Cumulative Deaths' + ' - ' + country_name)
 plt.subplot(2, 1, 1)
 plt.grid(True, which="both")
 plt.semilogy(day[case_100:], cum_deaths[case_100:])
-plt.ylim([0, max(cum_deaths) + (0.01 * max(cum_deaths))])
+plt.ylim([0.1, max(cum_deaths) + (0.01 * max(cum_deaths))])
 plt.xlabel('Date')
 plt.ylabel('Cumulative deaths (Semilog plot)')
 plt.xticks(day[case_100::2], rotation=90)
 plt.subplot(2, 1, 2)
 plt.grid(True, which="both")
 plt.plot(day[case_100:], cum_deaths[case_100:])
-plt.ylim([0, max(cum_deaths) + (0.01 * max(cum_deaths))])
+plt.ylim([0.1, max(cum_deaths) + (0.01 * max(cum_deaths))])
 plt.xlabel('Date')
 plt.ylabel('Cumulative deaths')
 plt.xticks(day[case_100::2], rotation=90)
@@ -113,7 +114,7 @@ ddr_idx = np.argmax(cum_deaths > 50) + cdr_interval  # n+7 idx after 100th case 
 if cum_deaths[-1] > 50:
     for ddr in range(ddr_idx, len(cum_deaths)):
         ddr_pts.append(ddr_interval / (np.log2(cum_deaths[ddr]) - np.log2(cum_deaths[ddr - ddr_interval])))
-    plt.figure(6)
+    plt.figure(7)
     plt.title('Death Doubling Rate ' + ' ' + country_name)
     plt.plot(day[ddr_idx::2], ddr_pts[::2], 'o-')
     plt.xlabel('Date')
@@ -125,7 +126,7 @@ df.total_tests.fillna(0, inplace=True)
 cum_tests = df.total_tests
 cum_tests = cum_tests.to_numpy()
 idx_test = cum_tests > 0
-plt.figure(6)
+plt.figure(8)
 plt.suptitle('Test data' + ' - ' + country_name)
 plt.subplot(3, 1, 1)
 plt.grid()
@@ -151,15 +152,15 @@ plt.ylabel('% Positive')
 plt.ylim([0, max(pos_rat)])
 plt.subplots_adjust(hspace=0.25)
 
-# 8 Case Fatality Rate
-plt.figure(8)
+# 9 Case Fatality Rate
+plt.figure(9)
 plt.title('Case fatality rate' + ' - ' + country_name)
 plt.plot(day[case_100:], df.total_deaths[case_100:] * 100 / df.total_cases[case_100:])
 plt.xlabel('Date')
 plt.ylabel('% of people confirmed dead')
-plt.savefig(country_name + '_CaseFatalityRate.png', bbox_inches='tight', dpi=100)
+plt.xticks(day[cdr_idx::2], rotation=90)
 
-# 9 Case Growth Rate
+# 10 Case Growth Rate
 new_cases = df.new_cases[case_100:]
 count = 1
 cgr = []
@@ -170,17 +171,20 @@ for cases in new_cases:
         print(old_cases)
         count = count + 1
     else:
-        cgr.append(cases/old_cases)
-        old_cases = cases
-
-plt.figure(9)
+        if old_cases is 0:
+            cgr.append(np.nan)
+            old_cases = cases
+        else:
+            cgr.append(cases / old_cases)
+            old_cases = cases
+plt.figure(10)
 plt.plot(day[case_100:], cgr)
 plt.xticks(day[case_100:], rotation=90)
 plt.xlabel('Date')
 plt.ylabel('Case Growth Ratio')
 plt.title('Case Growth Rate' + ' ' + country_name)
 
-# 10 Death Growth Rate
+# 11 Death Growth Rate
 new_deaths = df.new_deaths[ddr_idx:]
 count = 1
 dgr = []
@@ -190,10 +194,14 @@ for deaths in new_deaths:
         old_deaths = deaths
         count = count + 1
     else:
-        dgr.append(deaths/old_deaths)
-        old_deaths = deaths
+        if old_deaths is 0:
+            dgr.append(np.nan)
+            old_deaths = deaths
+        else:
+            dgr.append(deaths/old_deaths)
+            old_deaths = deaths
 
-plt.figure(10)
+plt.figure(11)
 plt.plot(day[ddr_idx:], dgr)
 plt.xticks(day[ddr_idx:], rotation=90)
 plt.xlabel('Date')
@@ -203,3 +211,5 @@ plt.title('Death Growth Rate' + ' ' + country_name)
 # To include -> R0 calculation
 #            -> Active Cases vs Total Cases
 #            -> % Recovered vs % Dead in cases with outcome
+#            -> Case Growth Ratio vs Testing Growth Ratio
+#            ->
