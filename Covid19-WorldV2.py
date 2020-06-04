@@ -5,7 +5,7 @@ import DateTime as dt
 
 # Country Selector
 url = 'https://covid.ourworldindata.org/data/owid-covid-data.xlsx?raw=True'
-country_name = 'Italy'
+country_name = 'Germany'
 df_main = pd.read_excel(url, sheet_name='Sheet1')
 df = df_main[df_main["location"] == country_name]
 
@@ -125,32 +125,33 @@ if cum_deaths[-1] > 50:
 df.total_tests.fillna(0, inplace=True)
 cum_tests = df.total_tests
 cum_tests = cum_tests.to_numpy()
-idx_test = cum_tests > 0
-plt.figure(8)
-plt.suptitle('Test data' + ' - ' + country_name)
-plt.subplot(3, 1, 1)
-plt.grid()
-plt.plot(days[idx_test], cum_tests[idx_test])
-plt.xlabel('Days since 31 Dec 2019')
-plt.ylabel('Total Samples tested')
-plt.subplot(3, 1, 2)
-pos_tests = cum_tests[idx_test]
-pos_samples = cum_cases[idx_test]
-pos_tests = np.append(pos_tests[0], np.diff(pos_tests))
-pos_samples = np.append(pos_samples[0], np.diff(pos_samples))
-plt.bar(days[idx_test], pos_tests)
-# plt.semilogy(days[idx_test], cum_tests[idx_test])
-plt.xlabel('Days since 31 Dec 2019')
-plt.ylabel('Daily samples tested')
-plt.grid()
-plt.subplot(3, 1, 3)
-plt.grid()
-pos_rat = pos_samples * 100 / pos_tests
-plt.plot(days[idx_test], pos_rat, 'o-')
-plt.xlabel('Days since 31 Dec 2019')
-plt.ylabel('% Positive')
-plt.ylim([0, max(pos_rat)])
-plt.subplots_adjust(hspace=0.25)
+if np.sum(cum_tests) > 0:
+    idx_test = cum_tests > 0
+    plt.figure(8)
+    plt.suptitle('Test data' + ' - ' + country_name)
+    plt.subplot(3, 1, 1)
+    plt.grid()
+    plt.plot(days[idx_test], cum_tests[idx_test])
+    plt.xlabel('Days since 31 Dec 2019')
+    plt.ylabel('Total Samples tested')
+    plt.subplot(3, 1, 2)
+    pos_tests = cum_tests[idx_test]
+    pos_samples = cum_cases[idx_test]
+    pos_tests = np.append(pos_tests[0], np.diff(pos_tests))
+    pos_samples = np.append(pos_samples[0], np.diff(pos_samples))
+    plt.bar(days[idx_test], pos_tests)
+    # plt.semilogy(days[idx_test], cum_tests[idx_test])
+    plt.xlabel('Days since 31 Dec 2019')
+    plt.ylabel('Daily samples tested')
+    plt.grid()
+    plt.subplot(3, 1, 3)
+    plt.grid()
+    pos_rat = pos_samples * 100 / pos_tests
+    plt.plot(days[idx_test], pos_rat, 'o-')
+    plt.xlabel('Days since 31 Dec 2019')
+    plt.ylabel('% Positive')
+    plt.ylim([0, max(pos_rat)])
+    plt.subplots_adjust(hspace=0.25)
 
 # 9 Case Fatality Rate
 plt.figure(9)
